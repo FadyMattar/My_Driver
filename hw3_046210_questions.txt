@@ -1,0 +1,89 @@
+
+
+how do we know if the type is PUB or SUB, fmode? answer : the user calls SET_TYPE with the type input.
+
+how to restart all seek for all subs after they finished and we rewrite?
+
+can we write to the remaining space in the buffer if there exists subs that are not done reading?
+
+is it possible to do release if reference counting != 0 ?  do we return error?
+
+reference counting of what? assuming file then it should be in inode?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+are processes devices?//no
+Do we have a driver and a device called pubsub that manages all devices/processes?
+
+for each file there is a minor in inode
+
+what functions are meant that are in string.h / stdlib/ stdio?
+
+
+inode : major, minor , 
+		File type  // always c 
+		Permissions   // can we see each process permission aka type from here or is it for the device 
+		Owner ID     // we need it bc if owner closes then we close the file aka the device dies?
+		Group ID     // minor ? major ?
+		Size of file  // do we need it to count how much is written? is size = bits 1000b?
+		Time last accessed  
+		Time last modified  
+		Soft/Hard Links  // do we need them since everyone in the same group? 
+		Access Control List (ACLs)  // could not find good info
+		
+do all processes / devices need to open file to be able to write / read since they are under the same major/minor?
+
+how is each attribute called in inode
+do we need to change properties in inode, for example permissions?
+
+
+
+add write function
+make new struct that have :{
+buffer pointer 
+type ( pub or sub)
+}
+global buffer size 255
+ : index of minor 
+
+file-> private_data = struct { buffer = null, type = arg}
+
+
+init_module+clean_up module, what do we need to do? 
+
+
+
+
+
