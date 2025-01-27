@@ -255,9 +255,9 @@ int my_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned 
         return 0;
 	break;
     case GET_TYPE:
-        if ((pdp_p->type != TYPE_PUB) && (pdp_p != TYPE_SUB)) {
+        /*if ((pdp_p->type != TYPE_PUB) && (pdp_p != TYPE_SUB)) {
             return TYPE_NONE;
-        }
+        }*/
         return pdp_p->type;
 	break;
     default:
