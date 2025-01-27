@@ -106,7 +106,7 @@ int my_open(struct inode *inode, struct file *filp)
     p->type = TYPE_NONE;
     p->seek = 0 ; 
     p->my_resets = buffer_array[p->minor_id]->global_reset;
-    filp->private_data = &p; // might be &p
+    filp->private_data = p; // might be &p
 
     // check if buffer is initiated, if not then initiate
     if (buffer_array[p->minor_id]->buff == NULL) {
