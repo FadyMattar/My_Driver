@@ -108,6 +108,8 @@ int my_open(struct inode *inode, struct file *filp)
     p->my_resets = buffer_array[p->minor_id]->global_reset;
     filp->private_data = p; // might be &p
 
+    buffer_array[p->minor_id]->reference_count++;
+
     // check if buffer is initiated, if not then initiate
     if (buffer_array[p->minor_id]->buff == NULL) {
         char *buff_p = kmalloc ( sizeof(char)*BUFFER_SIZE, GFP_KERNEL );
@@ -118,6 +120,8 @@ int my_open(struct inode *inode, struct file *filp)
     return 0;
 }
 
+
+// Fady: this is called each time we close a fd (is that true?)
 int my_release(struct inode *inode, struct file *filp) // release memory initiated in open
 {
     struct pdp_strct * pdp_p = (struct pdp_strct *) (filp->private_data); 
@@ -127,12 +131,13 @@ int my_release(struct inode *inode, struct file *filp) // release memory initiat
         buffer_array[minor]->sub_counter --;
     }
 
-    kfree(&pdp_p);
+    kfree(pdp_p);
     
     buffer_array[minor]->reference_count -=1;
 
-
+    printk(KERN_INFO "Reference_count is %d.\n", buffer_array[minor]->reference_count);
     if( buffer_array[minor]->reference_count == 0 ) {
+        printk(KERN_INFO "Reference_count is ZERO.\n");
         kfree(buffer_array[minor]->buff);
         buffer_array[minor]->sub_counter = 0;
         buffer_array[minor]->finished_sub = 0;
@@ -140,8 +145,11 @@ int my_release(struct inode *inode, struct file *filp) // release memory initiat
         buffer_array[minor]->buff = NULL;
         buffer_array[minor]->global_reset = 0;
         buffer_array[minor]->reference_count = 0;
+        return 0;
     }
-    
+
+
+
     return 0;
 }
 
@@ -156,6 +164,11 @@ ssize_t my_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
         return -EPERM;
     }
     
+    //check if there is something to read
+    if (buffer_array[minor]->buff_len == 0) {
+        return -EAGAIN;
+    }
+
     //check if the buffer of the file exists
     if (buffer_array[minor]->buff == NULL) {
         return -EFAULT;
@@ -171,7 +184,8 @@ ssize_t my_read(struct file *filp, char *buf, size_t count, loff_t *f_pos)
 
     // find how much to read
     int read_count = buffer_array[minor]->buff_len - *seek;
-    if (read_count == 0) {
+    printk(KERN_INFO "read_count = %d , bl = %d , seek = %d\n",read_count,buffer_array[minor]->buff_len,*seek);
+    if (read_count <= 0) {
         return -EAGAIN;
     }
     if (count < read_count) {
@@ -215,6 +229,7 @@ ssize_t my_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos
 
     //check remaining space
     int remaining_buffer_spcae = BUFFER_SIZE - buffer_array[minor]->buff_len;
+    printk(KERN_INFO "rbs = %d , bs = %d , bl = %d , c = %d\n",remaining_buffer_spcae,BUFFER_SIZE,buffer_array[minor]->buff_len,count);
     if (count > remaining_buffer_spcae ) {
         return -EAGAIN;
     }
